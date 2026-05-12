@@ -225,41 +225,8 @@ Normal behavior: first request triggers lazy policy/engine initialization.
 
 ---
 
-## 11) Publishing
-
-Docker Hub example:
-
-```bash
-docker login
-docker tag drl-grpc-route:full-best <dockerhub_user>/drl-grpc-route:full-best
-docker push <dockerhub_user>/drl-grpc-route:full-best
-```
-
-Optional latest tag:
-
-```bash
-docker tag <dockerhub_user>/drl-grpc-route:full-best <dockerhub_user>/drl-grpc-route:latest
-docker push <dockerhub_user>/drl-grpc-route:latest
-```
-
----
-
-## 12) Model Weights Strategy
+## 11) Model Weights Strategy
 
 For GitHub, storing large model weights directly in the repository is usually a bad idea.
 
-Recommended:
-1. keep code/config/documentation in GitHub
-2. publish weights externally (releases, object storage, artifact registry)
-3. provide explicit download instructions and checksum
-
-Why:
-- smaller/faster clone and pull
-- cleaner history
-- easier collaboration and CI usage
-
-If reproducibility is important, publish:
-- exact training command
-- dependency versions
-- checkpoint metadata/hash
-- weight download URL
+If you need the weights, write me an email.
