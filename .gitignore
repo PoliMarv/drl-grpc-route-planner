@@ -1,0 +1,72 @@
+# ------------------------------
+# OS / Editor
+# ------------------------------
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# ------------------------------
+# Python cache / local envs
+# ------------------------------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# Keep project folder `env/` (contains source code),
+# ignore only common virtualenv names.
+.venv/
+venv/
+ENV/
+env.bak/
+env_tmp/
+
+# ------------------------------
+# Local runtime artifacts
+# ------------------------------
+logs/
+*.log
+request.json
+
+# ------------------------------
+# Heavy training artifacts
+# ------------------------------
+plots/
+OLD/
+my_checkpoints/
+my_checkpoints_coverage/
+my_checkpoints_distance/
+my_checkpoints_distance_best/
+results_distance_only/
+results_full_objective/plots/
+results_full_objective/rllib_checkpoints/
+results_full_objective/checkpoint/
+results_full_objective/checkpoint_best/
+results_full_objective/*.csv
+results_full_objective/*.md
+reward_*.csv
+
+# ------------------------------
+# Large model binaries (keep code, ignore weights)
+# ------------------------------
+coverage_prediction/*.pkl
+*.joblib
+
+# ------------------------------
+# Docker local leftovers
+# ------------------------------
+*.tar
+
+# ------------------------------
+# Keep only one project documentation entrypoint
+# ------------------------------
+*.md
+!README.md
+
+# Local notes / manual test logs
+test_DIRETTO.txt

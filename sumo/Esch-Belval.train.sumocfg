@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Esch-Belval.train.sumocfg
+    Versione ottimizzata per il training DRL:
+    - Rimuove il traffico di background (route-files commentato)
+    - Sopprime i log di step per ridurre l'I/O
+    - Mantiene la rete e i poligoni per la visualizzazione GUI
+-->
+
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/sumoConfiguration.xsd">
+
+    <input>
+        <net-file value="Esch-Belval.net.xml"/>
+        <!-- route-files rimosso: il traffico background non serve al DRL
+             e simulare 60+ veicoli extra rallenta ogni step del 2-3x.
+             Il solo veicolo EGO viene aggiunto via TraCI da Python. -->
+        <additional-files value="Esch-Belval.poly.xml"/>
+    </input>
+
+    <time>
+        <begin value="0"/>
+        <end value="999999"/>
+        <step-length value="0.1"/>
+    </time>
+
+    <processing>
+        <ignore-route-errors value="true"/>
+    </processing>
+
+    <report>
+        <!-- Disabilita il log "Step #XXXXX" ogni passo: riduce l'I/O del terminale -->
+        <no-step-log value="true"/>
+        <no-warnings value="true"/>
+    </report>
+
+    <gui_only>
+        <gui-settings-file value="gui-settings.xml"/>
+        <start value="true"/>
+    </gui_only>
+
+</configuration>

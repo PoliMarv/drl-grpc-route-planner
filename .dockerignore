@@ -1,0 +1,38 @@
+# VCS / IDE
+.git
+.gitignore
+.idea/
+
+# Python cache / virtual envs
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.venv/
+venv/
+
+# OS noise
+.DS_Store
+Thumbs.db
+
+# Training artifacts not needed for gRPC inference image
+OLD/
+plots/
+my_checkpoints/
+my_checkpoints_coverage/
+my_checkpoints_distance/
+my_checkpoints_distance_best/
+results_distance_only/
+results_full_objective/plots/
+results_full_objective/rllib_checkpoints/
+results_full_objective/checkpoint/
+results_full_objective/*.md
+results_full_objective/*.csv
+coverage_prediction/*.pkl
+
+# Keep only required best policy checkpoint file set
+!results_full_objective/checkpoint_best/
+!results_full_objective/checkpoint_best/policy_state.pkl
+!results_full_objective/checkpoint_best/rllib_checkpoint.json

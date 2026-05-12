@@ -1,0 +1,318 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";  // Import the Empty message type
+
+package coSim;
+
+/*
+This file defines the protocol for the co-simulation service.
+It includes service definitions, message types, and RPC methods for managing a federate.
+Any federate(simulator/stand alone functional model) that wants to be part of the co-simulation must implement an interface using gRPC containing these methods/services.
+The services allow starting the simulation, executing/advancing time steps, managing hosts, and exchanging and 
+commanding attributes between different simulators or functional models in the co-simulation.
+The messages are used to exchange data between the federates and the co-simulation service.
+The messages are defined in a way that allows for extensibility, so you can add your own attributes or types as needed.
+
+*/
+
+service CoSim {
+
+    rpc Start (Config) returns (google.protobuf.Empty);
+    /*Start:  This RPC should allow your application to instantiate. If you require a config file or some pamaraters to 
+    *instantiate we can pass it as Config message.
+    *Calling this RPC multiple times should be possible, by createing new instance at each call.
+    *
+    */
+    rpc ExecuteOneTimeStep (StepRequest) returns (StepReply);
+    /* ExecuteOneTimeStep: This RPC should allow your application to advance one step of simulation time. This is the amount of time the simulation time should be advanced for your application and then wait until the next step is requested.
+    *The time for each step is defined through the Start(Config) RPC. Also it should be possible to dynamically change it at runtime
+    *by passing a new value as part of the StepRequest message. 
+    */
+    rpc Finish (google.protobuf.Empty) returns (google.protobuf.Empty);
+    /*
+    * Finish: This RPC should allow your application to finish the simulation. And clean up any resources it has allocated.
+    *It should be called at the end of the simulation. Later on it should extended to forward result files as well.
+    */
+    rpc GetManagedHosts(google.protobuf.Empty) returns (VehicleList);
+
+    /*
+    GetManagedHosts: This RPC should allow your application to get the list of managed hosts(UE), along with their current state, i.e. 
+    *their position, speed, angle, etc. This is the list of hosts that your application is responsible for managing.
+    */
+
+    rpc InsertHost (HostId) returns (google.protobuf.Empty);
+    /* InsertHost: This RPC should allow your application to insert a new host into the co-simulation. 
+    */
+    rpc DeleteHost (HostId) returns (google.protobuf.Empty);
+    /* DeleteHost: This RPC should allow your application to delete a host it is currently maintaining
+    */
+    rpc SetAttribute (Request) returns (google.protobuf.Empty);
+    /* SetAttribute: This RPC should allow your application to set an attribute for a host or a group of hosts.
+    *e.g. speed, route, shape, boundarys, etc.
+    
+    */
+    rpc GetAttribute (Request) returns (Request);
+    /* GetAttribute: This RPC should allow your application to get an attribute for a host or a group of hosts or simulation
+    */
+    rpc QueryRequest (google.protobuf.Empty) returns (Requests);
+    /* QueryRequest: This RPC should allow your application to query the requests that are currently pending after advancing each simulation step.
+    *It could be anything that you want from other simulators that are coupled. This RPC will be called at the very beginning after starting your *federate and also after each ExecuteOneTimeStep rpc call. 
+    * This is useful to interact with other simulator in the co-simulation, synchronously.
+    *This is how you interact with other simulators in the co-simulation, as a form and request and response.
+    */
+}
+/*
+// ValueType defines a template for dynamic type handling in requests.
+// Message definition for the value type used in requests
+// This message can hold different types of values, including arrays and complex types.
+// It uses a oneof field to allow for different value types to be specified.
+// ValueType fields can be extended with additional types as needed.
+*/
+message ValueType{
+    oneof value{
+        int32 intValue = 1;
+        double doubleValue = 2;
+        string stringValue = 3;
+        IntArray intArray = 4;
+        DoubleArray doubleArray = 5;
+        StringArray stringArray = 6;
+        PolygonList polygonList = 7;
+        LaneList laneList = 8;
+        PGBoundary pgBoundary = 9;
+        PolygonDescription polygonDescription = 10;
+
+        
+    }
+    //Array type definitions 
+    message IntArray{
+        repeated int32 values = 1;
+    }
+    message DoubleArray{
+        repeated double values = 1;
+    }
+    message StringArray{
+        repeated string values = 1;
+    }
+    
+}
+
+//Message definition for a list of request
+message Requests{
+    repeated Request requests = 1;
+}
+/*
+// Message definition/template for a single request, If a given data structure does not fit your needs, you can extend it with your own attributes.
+// If you want to get, set or change any attribute of a host in another simulator then you can request it using this message.
+// The request can be for a single host or for all hosts of a given type.
+*/
+message Request{
+    /*
+    //Attribute enum defines the different attributes that can be requested or set.
+    //You can extend this enum with your own attributes as needed.
+    */
+    enum Attribute{
+        SPEED = 0;
+        ROUTE = 1;
+        SHAPE = 2;
+        BOUNDARIES = 3;
+        MESSAGE = 4;
+        
+    }
+    /*
+    //RequestType enum defines the type of request that is being made.
+    //It can be a GET request to retrieve the value, a SET request to set a value, or a CHANGE request to change an existing value.
+    //You can extend this enum with your own request types as needed.
+    */
+    enum RequestType{
+        GET = 0;
+        SET = 1;
+        CHANGE = 2;
+        TX_MESSAGE = 3;  // Transmit message
+        RX_MESSAGE = 4;  // Receive message
+        DX_MESSAGE = 5;  // Dropped message
+    }
+
+    /*
+    //Category enum defines the category of the request.
+    //It can be a VEHICLE request for vehicle attributes, a LANE request for lane attributes, 
+    //a ROAD request for road attributes, a POLYGON request  for polygon attributes, or a NETWORK request for network attributes.
+    //You can extend this enum with your own categories as needed.
+    */
+    enum Category{
+        VEHICLE = 0;
+        LANE = 1;
+        ROAD = 2;
+        POLYGON = 3;
+        NETWORK = 4;
+        APPLICATION = 5;
+    }
+    Attribute attribute = 1;
+    bool forAll = 7; /* If true, the request is for all hosts of the given type, otherwise it is for a specific host and then the id field need to be filled. */
+    RequestType type = 2;
+    Category category = 3;
+    string id = 4;
+    ValueType value = 5;
+    string subAttributeId = 6;
+    string requestId = 8;  // Unique ID for the request 
+    double timestamp = 9;  // SimTime when the request was created
+
+
+
+
+}
+
+message Message{
+    string senderId = 1;
+    string receiverId = 2;
+    int32 sequenceNumber = 3;
+    int32 payloadSize  = 4;
+    double timestamp = 5;
+}
+
+message Messages{
+    repeated Message messages = 1;
+}
+
+/*
+// Message definitions for vehicles
+// This message defines the structure of a vehicle object in the simulation and includes various attributes that is exchanged with 
+// other simulators or functional models in the co-simulation.
+// If your vehicle has additional attributes that are not covered by this message, you can extend it with your own attributes.
+*/
+message Vehicle{
+    string objectId = 1;
+    double px = 2;
+    double py = 3;
+    double pz = 4;
+    string edge = 5;
+    double speed = 6;
+    double angle = 7;
+    int32  signal = 8;
+    
+    double length = 9;
+    double height = 10;
+    double width = 11;
+    string type = 12; //type of vehicles
+
+
+}
+message VehicleList{
+    repeated Vehicle vehicles = 1;
+}
+
+// Request to step simulation forward
+message StepRequest {
+    bool proceed = 1;
+    repeated Vehicle vehicles = 2;
+    double  simTime = 3;   
+}
+
+// Reply message
+message StepReply {
+    string status = 1;
+}
+
+message Coordinates{
+    double x = 1;
+    double y = 2;
+    double z = 3;
+}
+
+//message NextStepTime{
+//    double  simTime = 1;
+//}
+
+message Attribute{
+    string name = 1;
+    string value = 2;
+}
+
+message HostAttribute{
+    int32 id = 1;
+    Attribute attribute = 2;
+}
+
+message HostAttributeName{
+    int32 id = 1;
+    string name = 2;
+}
+
+message AttributeValue{
+    string value = 1;
+}
+
+message HostList {
+    repeated Host hosts = 1;
+}
+
+message Host {
+    int32 id = 1;
+    Coordinates coord = 2;
+    repeated Attribute attributes = 3;
+}
+
+message HostId {
+    string id = 1;
+    double simTime = 2;
+}
+
+message Config{
+    string path = 1;
+
+}
+
+message Coord2D{
+    double x = 1;
+    double y = 2;
+}
+
+message Polygon{
+    string id = 1;
+    string typeId = 2;
+    repeated Coord2D coords = 3;
+}
+
+
+message PolygonList{
+    repeated Polygon polygons = 1;
+    double timestamp = 2;       // SimTime when the response was created
+    string requestId = 3;       // Unique ID for the request
+}
+// Message definition for a polygon boundary
+message PGBoundary{
+    Coord2D first = 1;
+    Coord2D second = 2;
+}
+
+message PolygonDescription{
+    string id = 1;
+    string polyType = 2;
+    int32 color_red = 3;
+    int32 color_green = 4;
+    int32 color_blue = 5;
+    int32 color_alpha = 6;
+    bool filled = 7;
+    int32 layer = 8;
+    repeated Coord2D coords = 9;
+}
+// message definition for a lane
+// A lane is a sequence of coordinates that defines its shape.
+message Lane{
+    string id = 1;
+    repeated Coord2D coords = 2;
+}
+
+message LaneList{
+    repeated Lane lanes = 1;
+}
+
+
+
+
+/*
+After implementing the interface, it would be very useful if you also document what are the possible 
+interactions that you application supports and which message definitions are used for that.
+For example, if you want to get something and if any other simulator wants to set something then what are the messages that are used for that.
+This will help other developers to understand how to interact with your application in the co-simulation.
+If you have any questions, please feel free to ask: touhid_hossain.pritom@tu-dresden.de
+*/

@@ -1,0 +1,35 @@
+# Recommended Python: 3.10
+#
+# This file targets:
+# - gRPC inference server/client
+# - training scripts (Ray RLlib + PyTorch)
+# - plotting utilities
+#
+# Note: SUMO must be installed separately and SUMO_HOME configured.
+
+# Core numerics
+numpy>=2.0,<3
+scipy>=1.10,<2
+
+# DRL stack
+ray[rllib]>=2.9,<3
+torch==2.5.1
+gymnasium>=1.0,<2
+
+# SUMO / TraCI
+traci>=1.19
+sumolib>=1.19
+
+# gRPC / Protobuf
+grpcio>=1.62,<2
+grpcio-tools>=1.62,<2
+protobuf>=6.31.1,<7
+
+# Model persistence / ML helpers
+joblib>=1.3
+scikit-learn>=1.4,<2
+
+# Data & plotting utilities
+pandas>=2.0,<3
+matplotlib>=3.8,<4
+seaborn>=0.13,<1
